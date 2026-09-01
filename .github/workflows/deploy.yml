@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -22,14 +25,15 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.0'
+          flutter-version: "3.35.0"
           channel: stable
+          cache: true
 
       - name: Get dependencies
         run: flutter pub get
 
       - name: Build Flutter Web
-        run: flutter build web --release --base-href "/ex6_animation_app/"
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
@@ -43,6 +47,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
 
     steps:
       - name: Deploy to GitHub Pages
